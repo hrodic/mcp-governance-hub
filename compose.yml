@@ -1,0 +1,14 @@
+services:
+  mcp-server:
+    build: .
+    image: mcp-governance-hub:latest
+    container_name: mcp-governance-hub
+    volumes:
+      # Mount the parent directory to allow the agent to analyze multiple projects
+      # In development, we use an absolute path or relative to project root
+      - ..:/projects
+    environment:
+      - PROJECTS_ROOT=/projects
+      - NODE_ENV=development
+    stdin_open: true # Required for MCP stdio communication
+    tty: true
