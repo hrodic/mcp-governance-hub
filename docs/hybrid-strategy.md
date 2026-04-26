@@ -22,7 +22,16 @@ The **MCP Governance Hub** advocates for a strict boundary between what the AI "
 2.  **The "Bus Factor"**: If the Hub is down, the project should still have enough local markdown context to remain somewhat understandable by the AI.
 3.  **The MCP Signpost**: We use a standardized `AGENTS.md` file in the root of every project to direct the AI to the Hub. This prevents the AI from "getting lost" or hallucinating local scripts.
 
-## 3. How the Agent Sees This (The Logic Flow)
+## 3. "God-Mode" Agents vs. "Bound" Agents
+
+Not all AI clients interact with the Hub the same way. It is crucial to understand the difference in your workforce:
+
+- **Bound Agents (Cursor, Roo Code, Claude Desktop):** These agents operate in strict, sandboxed environments. They *must* connect to the Governance Hub via the official MCP JSON-RPC protocol. The Hub acts as their API gateway to execute scripts (like `analyze_dependencies`) safely.
+- **God-Mode Agents (Antigravity):** These agents have native, unrestricted access to the host machine's terminal and filesystem. They do not rely on the JSON-RPC layer. Instead, they interact with the Hub natively—they directly execute the `mcp.ps1` scripts and read the `prompts/` markdown files. 
+
+For God-Mode agents, the Hub functions as a **Canonical Rulebook & Automation Toolbelt** rather than an API. Because the governance rules and scripts are centralized, both paradigms (Bound and God-Mode) remain fully synchronized and deterministic.
+
+## 4. How the Agent Sees This (The Logic Flow)
 
 Whether you are working in **PHP (Laravel)**, **Rust (Axum)**, or **JS (Next.js)**, the AI agent follows this mental model:
 
