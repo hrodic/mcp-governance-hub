@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  docker-ci:
+    name: Build, Test & Type-Check (Docker)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: make build
+
+      - name: Type-check
+        run: make typecheck
+
+      - name: Run unit tests
+        run: make test
+
+      - name: MCP protocol smoke test
+        run: |
+          make test-functional | grep '"result"'
+          echo "✅ MCP handshake OK"

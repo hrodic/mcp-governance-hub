@@ -1,34 +1,11 @@
-import { z } from "zod";
-
-/**
- * Standard schema for Architecture Decision Records (ADRs).
- * Validates that the AI provides all necessary components for a high-quality record.
- */
-export const AdrSchema = z.object({
-  title: z.string().min(5, "Title must be descriptive"),
-  status: z.enum(["Proposed", "Accepted", "Rejected", "Superseded"]),
-  drivers: z.array(z.string()).min(1, "At least one technical driver is required"),
-  context: z.string().min(20, "Context must explain the problem statement thoroughly"),
-  decision: z.string().min(20, "Decision must clearly state the path taken"),
-  alternatives: z.array(z.string()).default([]),
-  consequences: z.object({
-    positive: z.array(z.string()),
-    negative: z.array(z.string())
-  }),
-  targetPath: z.string().default("mcp-governance-hub/docs/adrs"), // Relative to PROJECTS_ROOT
-  notes: z.string().optional()
-});
-
-export const ComplianceSchema = z.object({
-  filePath: z.string(),
-  requirements: z.array(z.string()).min(1, "Specify at least one pattern to check for"),
-  restrictions: z.array(z.string()).default([]) // Patterns that MUST NOT be present
-});
-
-export type Adr = z.infer<typeof AdrSchema>;
+import path from "path";
 
 /**
  * Generates a URL-friendly slug from a title string.
+ *
+ * @example
+ * generateSlug("My ADR Title")     // "my-adr-title"
+ * generateSlug("Special @# Chars!") // "special-chars"
  */
 export function generateSlug(text: string): string {
   return text
@@ -36,4 +13,27 @@ export function generateSlug(text: string): string {
     .replace(/[^\w\s-]/g, "")
     .replace(/[\s_-]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Resolves `relativePath` against `root` and throws if the result would
+ * escape the root directory (path traversal attack).
+ *
+ * Uses `path.resolve` rather than regex stripping so it is immune to
+ * normalisation bypasses and works identically on Windows and Linux.
+ *
+ * @throws {Error} if the resolved path is outside `root`.
+ * @returns The safe, absolute resolved path.
+ */
+export function resolveSafePath(root: string, relativePath: string): string {
+  const resolvedRoot = path.resolve(root);
+  const resolved = path.resolve(root, relativePath);
+
+  if (!resolved.startsWith(resolvedRoot + path.sep) && resolved !== resolvedRoot) {
+    throw new Error(
+      `Path traversal blocked: "${relativePath}" resolves outside of the projects root.`,
+    );
+  }
+
+  return resolved;
 }

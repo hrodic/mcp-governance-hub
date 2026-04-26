@@ -4,11 +4,17 @@ services:
     image: mcp-governance-hub:latest
     container_name: mcp-governance-hub
     volumes:
-      # Mount the parent directory to allow the agent to analyze multiple projects
-      # In development, we use an absolute path or relative to project root
+      # Workspace Mode (development): mounts the parent directory so a single
+      # Hub instance can govern all sibling projects simultaneously.
+      #
+      # ⚠ Strict Mode (recommended for sensitive tasks): replace with:
+      #   - /absolute/path/to/specific-project:/projects
       - ..:/projects
     environment:
       - PROJECTS_ROOT=/projects
       - NODE_ENV=development
-    stdin_open: true # Required for MCP stdio communication
-    tty: true
+    # stdin_open is required for MCP stdio JSON-RPC communication.
+    # tty must be FALSE — a pseudo-TTY injects control characters that
+    # corrupt the JSON-RPC stream.
+    stdin_open: true
+    tty: false

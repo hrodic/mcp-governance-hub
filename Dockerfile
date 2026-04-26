@@ -1,17 +1,30 @@
-# Production-grade Node.js 22 (LTS) environment
+# Production-grade Node.js 22 LTS environment
 FROM node:22-slim
 
-# Install basic tools for healthchecks or debugging
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Install curl (for healthchecks) and python3 (for OSV dependency scanning)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  curl \
+  python3 \
+  python-is-python3 \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+RUN chown node:node /app
 
-# Copy package files first for better caching
-COPY package*.json ./
-RUN npm install
+# The node image already includes a non-root 'node' user with a proper home directory (/home/node).
+# Switching to it before running npm ci prevents the EACCES '/nonexistent' error.
+USER node
 
-# Copy source and config
-COPY . .
+# Copy lockfile + manifest first for optimal layer caching
+COPY --chown=node:node package*.json ./
+
+# Install all deps (including dev) — tsc and vitest are needed inside the container.
+# For a local governance hub, keeping devDeps in the image is the right trade-off.
+# A multi-stage slim build is an option if image size becomes a concern.
+RUN npm ci
+
+# Copy compiled source (pre-built) and config
+COPY --chown=node:node . .
 
 # Build the TypeScript project
 RUN npm run build
@@ -20,9 +33,9 @@ RUN npm run build
 ENV PROJECTS_ROOT=/projects
 ENV NODE_ENV=production
 
-# The MCP server communicates over stdio, no ports need exposing by default
-# but we can label it for discovery
-LABEL org.opencontainers.image.title="Hardened MCP Hub"
+# MCP communicates over stdio — no ports needed
+LABEL org.opencontainers.image.title="MCP Governance Hub"
 LABEL org.opencontainers.image.description="Containerized MCP Hub for Deterministic Agentic Workflows"
+LABEL org.opencontainers.image.licenses="MIT"
 
-CMD ["npm", "start"]
+CMD ["node", "dist/index.js"]

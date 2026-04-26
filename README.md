@@ -3,26 +3,38 @@
 > **Professional-grade AI Governance Framework for deterministic, local agentic workflows.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![MCP Version](https://img.shields.io/badge/MCP-1.0.0-blue)](https://modelcontextprotocol.io)
+[![MCP SDK](https://img.shields.io/badge/MCP%20SDK-1.29.0-blue)](https://modelcontextprotocol.io)
 [![Docker](https://img.shields.io/badge/Docker-First-2496ED)](https://www.docker.com/)
+[![CI](https://github.com/your-username/mcp-governance-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/mcp-governance-hub/actions/workflows/ci.yml)
 
 ---
 
 ## ⚡ 60-Second Quickstart
 
-Want to see the Hub in action **right now**?
+> **No local Node.js or Python required.** Everything runs inside Docker.
 
 1. **Build & Start**:
    ```bash
-   # Windows: powershell -File ./mcp.ps1 up
+   # Linux/macOS
    make up
+
+   # Windows
+   ./mcp.ps1 up
    ```
 2. **Dry Run a Tool Call** (Verify Governance):
    ```bash
-   # Windows: $json = Get-Content -Raw ./test/fixtures/adr-tool-call.json; $json | docker compose run --rm -i mcp-server
+   # Linux/macOS
    cat ./test/fixtures/adr-tool-call.json | docker compose run --rm -i mcp-server
+
+   # Windows
+   Get-Content ./test/fixtures/adr-tool-call.json | docker compose run --rm -i mcp-server
    ```
-3. **Check the Result**: Look at `docs/adrs/`—you just generated a professional, Zod-validated ADR via a sandboxed AI tool!
+3. **Check the Result**: Look at `docs/adrs/` — you just generated a professional, Zod-validated ADR via a sandboxed AI tool!
+4. **Scan for vulnerabilities**:
+   ```bash
+   make analyze-deps
+   # Windows: ./mcp.ps1 analyze-deps
+   ```
 
 ---
 
@@ -79,16 +91,16 @@ By default, the hub runs inside a Node 22 container. Your host machine stays cle
 - **Windows**: `powershell -File ./mcp.ps1 up`
 - **Linux/macOS**: `make up`
 
-### 2. Automated Governance (ADRs)
+### 3. Automated Governance (ADRs)
 Never manually write another ADR. The hub acts as a **Governance Gatekeeper** by exposing a `create_adr` tool that validates input strictly via **Zod**, ensuring your architecture history is professional and consistent.
 
-### 3. Progressive Context Management
+### 4. Progressive Context Management
 - **Resources**: Expose coding rules and system prompts directly to the LLM.
 - **Prompts**: Standardize workflows (e.g., "Scaffold new API endpoint").
 - **Tools**: Perform side-effect actions safely.
 
-### 4. Workspace Discovery
-Use the `summarize_workspace` tool to orient the AI. It will scan sibling directories and identify their technology stacks (Rust, PHP, Python, etc.) automatically.
+### 5. Workspace Discovery
+Use the `summarize_workspace` tool to orient the AI. It will scan sibling directories and identify their technology stacks (Rust, Go, Python, PHP, etc.) automatically.
 
 ---
 
@@ -107,12 +119,18 @@ Once the Hub is connected to your AI Agent (Cursor, Claude, etc.), try typing th
 - Docker & Docker Compose
 - An MCP-compliant client (Cursor, Claude Desktop, Roo Code, etc.)
 
+> No Node.js, Python, or other runtimes needed on the host machine.
+
 ### Installation
 
 1. Clone this repo into your projects folder.
 2. Build the hub:
    ```bash
+   # Linux/macOS
    make build
+
+   # Windows
+   ./mcp.ps1 build
    ```
 3. Configure your MCP client:
 
@@ -130,16 +148,32 @@ Once the Hub is connected to your AI Agent (Cursor, Claude, etc.), try typing th
 ```
 
 > **Note on Volume Mapping**: By default, the Hub mounts the **parent directory** of `mcp-governance-hub` to `/projects`. This allows a single Hub instance to orchestrate and govern multiple **sibling projects** in your workspace simultaneously.
-+
-+> [!IMPORTANT]
-+> **Strict Mode vs. Workspace Mode**: While mounting the parent directory (Workspace Mode) is convenient for orchestration, it violates the **Principle of Least Privilege**. For production environments or sensitive tasks, we strongly recommend **Strict Mode**: mount *only* the specific target project directory (`-v /path/to/specific-project:/projects`) to prevent the agent from accessing or modifying sibling repositories.
+
+> [!IMPORTANT]
+> **Strict Mode vs. Workspace Mode**: While mounting the parent directory (Workspace Mode) is convenient for orchestration, it violates the **Principle of Least Privilege**. For production environments or sensitive tasks, we strongly recommend **Strict Mode**: mount *only* the specific target project directory (`-v /path/to/specific-project:/projects`) to prevent the agent from accessing or modifying sibling repositories.
 
 ---
 
 ## 🧪 Testing
-We use **Vitest** for high-performance protocol testing.
+
+All tests run inside the Docker container — no local runtime needed.
+
 ```bash
+# Run unit tests
 make test
+# Windows: ./mcp.ps1 test
+
+# Run with coverage
+make test-coverage
+# Windows: ./mcp.ps1 test-coverage
+
+# MCP protocol smoke test
+make test-functional
+# Windows: ./mcp.ps1 test-functional
+
+# OSV.dev vulnerability scan
+make analyze-deps
+# Windows: ./mcp.ps1 analyze-deps
 ```
 
 ## 📄 License
